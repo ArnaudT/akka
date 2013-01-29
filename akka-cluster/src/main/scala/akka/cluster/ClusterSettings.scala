@@ -18,36 +18,25 @@ import akka.japi.Util.immutableSeq
 class ClusterSettings(val config: Config, val systemName: String) {
   import config._
 
-  final val FailureDetectorThreshold: Double = {
-    getDouble("akka.cluster.failure-detector.threshold")
-  } requiring (_ > 0.0, "failure-detector.threshold must be > 0")
-  final val FailureDetectorMaxSampleSize: Int = {
-    getInt("akka.cluster.failure-detector.max-sample-size")
-  } requiring (_ > 0, "failure-detector.max-sample-size must be > 0")
-  final val FailureDetectorImplementationClass: String = getString("akka.cluster.failure-detector.implementation-class")
-  final val FailureDetectorMinStdDeviation: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.min-std-deviation"), MILLISECONDS)
-  } requiring (_ > Duration.Zero, "failure-detector.min-std-deviation must be > 0")
-  final val FailureDetectorAcceptableHeartbeatPause: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.acceptable-heartbeat-pause"), MILLISECONDS)
-  } requiring (_ >= Duration.Zero, "failure-detector.acceptable-heartbeat-pause must be >= 0")
+  final val FailureDetectorConfig: Config = getConfig("akka.cluster.failure-detector")
+  final val FailureDetectorImplementationClass: String = FailureDetectorConfig.getString("implementation-class")
   final val HeartbeatInterval: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.heartbeat-interval"), MILLISECONDS)
+    Duration(FailureDetectorConfig.getMilliseconds("heartbeat-interval"), MILLISECONDS)
   } requiring (_ > Duration.Zero, "failure-detector.heartbeat-interval must be > 0")
   final val HeartbeatRequestDelay: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.heartbeat-request.grace-period"), MILLISECONDS)
+    Duration(FailureDetectorConfig.getMilliseconds("heartbeat-request.grace-period"), MILLISECONDS)
   } requiring (_ > Duration.Zero, "failure-detector.heartbeat-request.grace-period must be > 0")
   final val HeartbeatExpectedResponseAfter: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.heartbeat-request.expected-response-after"), MILLISECONDS)
+    Duration(FailureDetectorConfig.getMilliseconds("heartbeat-request.expected-response-after"), MILLISECONDS)
   } requiring (_ > Duration.Zero, "failure-detector.heartbeat-request.expected-response-after > 0")
   final val HeartbeatRequestTimeToLive: FiniteDuration = {
-    Duration(getMilliseconds("akka.cluster.failure-detector.heartbeat-request.time-to-live"), MILLISECONDS)
+    Duration(FailureDetectorConfig.getMilliseconds("heartbeat-request.time-to-live"), MILLISECONDS)
   } requiring (_ > Duration.Zero, "failure-detector.heartbeat-request.time-to-live > 0")
   final val NumberOfEndHeartbeats: Int = {
-    getInt("akka.cluster.failure-detector.nr-of-end-heartbeats")
+    FailureDetectorConfig.getInt("nr-of-end-heartbeats")
   } requiring (_ > 0, "failure-detector.nr-of-end-heartbeats must be > 0")
   final val MonitoredByNrOfMembers: Int = {
-    getInt("akka.cluster.failure-detector.monitored-by-nr-of-members")
+    FailureDetectorConfig.getInt("monitored-by-nr-of-members")
   } requiring (_ > 0, "failure-detector.monitored-by-nr-of-members must be > 0")
 
   final val SeedNodes: immutable.IndexedSeq[Address] =

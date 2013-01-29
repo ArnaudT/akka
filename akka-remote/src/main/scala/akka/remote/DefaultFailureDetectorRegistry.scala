@@ -16,7 +16,7 @@ import java.util.concurrent.locks.{ ReentrantLock, Lock }
  *   By-name parameter that returns the failure detector instance to be used by a newly registered resource
  *
  */
-class DefaultFailureDetectorRegistry[A](val detectorFactory: () ⇒ FailureDetector) extends FailureDetectorRegistry[A] {
+class DefaultFailureDetectorRegistry[A](detectorFactory: ⇒ FailureDetector) extends FailureDetectorRegistry[A] {
 
   private val resourceToFailureDetector = new AtomicReference[Map[A, FailureDetector]](Map())
   private final val failureDetectorCreationLock: Lock = new ReentrantLock
@@ -46,7 +46,7 @@ class DefaultFailureDetectorRegistry[A](val detectorFactory: () ⇒ FailureDetec
             case Some(failureDetector) ⇒
               failureDetector.heartbeat()
             case None ⇒
-              val newDetector: FailureDetector = detectorFactory()
+              val newDetector: FailureDetector = detectorFactory
               newDetector.heartbeat()
               resourceToFailureDetector.set(oldTable + (resource -> newDetector))
           }
@@ -73,5 +73,13 @@ class DefaultFailureDetectorRegistry[A](val detectorFactory: () ⇒ FailureDetec
     if (!resourceToFailureDetector.compareAndSet(oldTable, Map.empty[A, FailureDetector])) reset() // recur
 
   }
+
+  /**
+   * INTERNAL API
+   * Get the underlying FailureDetector for a resource.
+   */
+  private[akka] def failureDetector(resource: A): Option[FailureDetector] =
+    resourceToFailureDetector.get.get(resource)
+
 }
 
